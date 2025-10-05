@@ -71,7 +71,7 @@ Built for efficiency and ease of use, Ott3rrHunt handles everything from subdoma
 
 ```bash
 # Clone the repository
-git clone https://github.com/YOUR_USERNAME/ott3rrhunt.git
+git clone https://github.com/ott3rr-1/ott3rrhunt.git
 cd ott3rrhunt
 
 # Make scripts executable
