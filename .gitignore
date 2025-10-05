@@ -1,0 +1,16 @@
+# Exclude scan results
+bugbounty/
+recon/
+*.txt
+*.json
+
+# Exclude API keys and configs
+config.ini
+.env
+*_api_key*
+
+# Exclude system files
+.DS_Store
+*.swp
+*.swo
+*~
