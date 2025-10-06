@@ -9,7 +9,7 @@ OUT_BASE="${HOME}/bugbounty/recon"
 WORDLIST=""
 THREADS=15
 PARALLEL_JOBS=5
-MODE=""  # passive, active, or full
+MODE="passive"  # defaults to passive mode for safety
 
 usage() {
   cat <<EOF
@@ -42,13 +42,61 @@ while getopts "d:o:w:t:j:m:h" opt; do
 done
 
 if [[ -z "$DOMAIN" ]]; then
-  echo "ERROR: domain is required."
+  echo
+
+# Check for required core tools
+echo "${bold}${cyan}Checking required tools...${reset}"
+MISSING_TOOLS=()
+
+if ! command -v subfinder >/dev/null 2>&1; then
+  MISSING_TOOLS+=("subfinder")
+fi
+
+if ! command -v waybackurls >/dev/null 2>&1; then
+  MISSING_TOOLS+=("waybackurls")
+fi
+
+if [[ "$MODE" == "active" ]] || [[ "$MODE" == "full" ]]; then
+  if ! command -v httpx >/dev/null 2>&1; then
+    MISSING_TOOLS+=("httpx")
+  fi
+  if ! command -v nuclei >/dev/null 2>&1; then
+    MISSING_TOOLS+=("nuclei")
+  fi
+fi
+
+if [[ "$MODE" == "full" ]] && [[ -n "$WORDLIST" ]]; then
+  if ! command -v ffuf >/dev/null 2>&1; then
+    MISSING_TOOLS+=("ffuf")
+  fi
+fi
+
+if [[ ${#MISSING_TOOLS[@]} -gt 0 ]]; then
+  echo "${bold}${red}ERROR: Required tools not found:${reset}"
+  for tool in "${MISSING_TOOLS[@]}"; do
+    echo "  ${red}✗${reset} $tool"
+  done
+  echo
+  echo "${yellow}Run the installer:${reset}"
+  echo "  ./install-recon-tools.sh"
+  echo
+  exit 1
+else
+  echo "${green}✓ All required tools found${reset}"
+fi
+echo "ERROR: domain is required."
   usage
 fi
 
 TIMESTAMP="$(date +%Y%m%d-%H%M%S)"
 OUTDIR="${OUT_BASE}/${DOMAIN}/${TIMESTAMP}"
 mkdir -p "$OUTDIR"
+
+# Enable logging to file
+LOG_FILE="${OUTDIR}/run.log"
+exec > >(tee "$LOG_FILE") 2>&1
+echo "Logging to: $LOG_FILE"
+echo
 
 # color helpers
 if command -v tput >/dev/null 2>&1; then
@@ -546,6 +594,7 @@ echo
 
 echo "${bold}Output Directory:${reset}"
 echo "  ${cyan}${OUTDIR}${reset}"
+echo "  ${cyan}${LOG_FILE}${reset} (run log)"
 echo
 echo "${bold}Key Files:${reset}"
 echo "  📂 subdomains_all.txt           - All discovered subdomains"
