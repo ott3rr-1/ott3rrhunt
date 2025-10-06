@@ -9,7 +9,7 @@ OUT_BASE="${HOME}/bugbounty/recon"
 WORDLIST=""
 THREADS=15
 PARALLEL_JOBS=5
-MODE="passive"  # defaults to passive mode for safety
+MODE=""  # passive, active, or full
 
 usage() {
   cat <<EOF
@@ -136,14 +136,14 @@ if [[ -z "$MODE" ]]; then
   echo "               ${red}⚠ Very noisy - high request volume${reset}"
   echo "               ${red}⚠ May trigger WAF/IDS alerts${reset}"
   echo
-  printf "${bold}Enter your choice [1-3]:${reset} "
+  printf "${bold}Enter your choice [1-3] (default: 1/passive):${reset} "
   read -r choice
   
   case "$choice" in
-    1) MODE="passive";;
+    1|"") MODE="passive";;
     2) MODE="active";;
     3) MODE="full";;
-    *) echo "${red}Invalid choice. Defaulting to passive mode.${reset}"; MODE="passive";;
+    *) echo "${yellow}Invalid choice. Defaulting to passive mode.${reset}"; MODE="passive";;
   esac
   echo
 fi
